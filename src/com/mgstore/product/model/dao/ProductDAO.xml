@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductDAO">
+
+	<!-- 상품 -->
+	<resultMap type="com.mgstore.product.model.dto.ProductDTO" id="productResultMap">
+		<id property="proId" column="PRO_ID"/>
+		<result property="proCateId" column="PCATE_ID"/>
+		<result property="proTitle" column="PRO_TITLE"/>
+		<result property="price" column="PRICE"/>
+		<result property="proAmount" column="PRO_AMOUNT"/>
+		<result property="proContent" column="PRO_CONTENT"/>
+		<result property="proDate" column="PRO_DATE"/>
+		<result property="proStatus" column="PRO_STATUS"/>
+		<result property="proCount" column="PRO_COUNT"/>
+		
+		<association property="category" resultMap="proCateResultMap"/>
+	</resultMap>
+	
+	<!-- 카테고리 -->
+	<resultMap type="com.mgstore.product.model.dto.ProCateDTO" id="proCateResultMap">
+		<id property="proCateId" column="PCATE_ID"/>
+		<result property="pCateName" column="PCATE_NAME"/>
+		<result property="pCatePId" column="PCATE_P_ID"/>
+	</resultMap>
+	
+	<!-- 썸네일 -->
+	<resultMap type="com.mgstore.product.model.dto.ProductDTO" id="thumbnailProductResultMap">
+		<id property="proId" column="PRO_ID"/>
+		<result property="proCateId" column="PCATE_ID"/>
+		<result property="proTitle" column="PRO_TITLE"/>
+		<result property="price" column="PRICE"/>
+		<result property="proAmount" column="PRO_AMOUNT"/>
+		<result property="proContent" column="PRO_CONTENT"/>
+		<result property="proDate" column="PRO_DATE"/>
+		<result property="proStatus" column="PRO_STATUS"/>
+		<result property="proCount" column="PRO_COUNT"/>
+		
+		<association property="category" resultMap="proCateResultMap"/>
+		
+		<collection property="proImgList" resultMap="proImgResultMap"/>
+	</resultMap>
+	
+	<!-- 상품이미지 -->
+	<resultMap type="com.mgstore.product.model.dto.ProImgDTO" id="proImgResultMap">
+		<id property="proImgId" column="PIMG_ID"/>
+		<result property="refProId" column="REF_PRO_ID"/>
+		<result property="proImgOrgName" column="PIMG_ORGNAME"/>
+		<result property="proImgSvrName" column="PIMG_SVRNAME"/>
+		<result property="proImgPath" column="PIMG_PATH"/>
+		<result property="proImgType" column="PIMG_TYPE"/>
+		<result property="proThumbnailPath" column="PTHUMBNAIL_PATH"/>
+		<result property="proImgStatus" column="PIMG_STATUS"/>
+	</resultMap>
+	
+	<!-- 상품 좋아요 -->
+	<resultMap type="com.mgstore.product.model.dto.ProLikeDTO" id="proLikeResultMap">
+		<association property="user" resultMap="userResultMap"/>
+		<association property="product" resultMap="productResultMap"/> <!-- collection이 아니라 association 맞는지? -->
+	</resultMap>
+	
+	<!-- UserDTO 가져오기 -->
+	<resultMap type="com.mgstore.user.model.dto.UserDTO" id="userResultMap">
+		<id property="userId" column="USER_ID"/>
+		<result property="userPwd" column="USER_PWD"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="nickname" column="NICKNAME"/>
+		<result property="email" column="EMAIL"/>
+		<result property="phone" column="PHONE"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="agreement" column="AGREEMENT"/>
+		<result property="role" column="ROLE"/>
+		<result property="userStatus" column="USER_STATUS"/>
+		<result property="regDate" column="REG_DATE"/>
+		<result property="modDate" column="MOD_DATE"/>
+	</resultMap>
+	
+	<!-- 상품 문의 -->
+	<resultMap type="com.mgstore.product.model.dto.ProAskDTO" id="proAskResultMap">
+		<id property="pAskId" column="PASK_ID"/>
+		<result property="pQuestion" column=""/>
+		<result property="aAskDate" column=""/>
+		<result property="pAskStatus" column=""/>
+		<result property="managerId" column=""/>
+		<result property="pAnswer" column=""/>
+		<result property="pAnswerDate" column=""/>
+		
+		<association property="user" resultMap="userResultMap"/>
+		<association property="product" resultMap="productResultMap"/>
+	</resultMap>
+	
+	<!-- 상품게시판 목록 조회 -->
+	<select id="selectThumbnailList" resultMap="thumbnailProductResultMap">
+		SELECT
+				A.PRO_ID
+			  , B.PCATE_NAME
+			  , A.PRO_TITLE
+			  , A.PRICE
+			  , A.PRO_DATE
+			  , C.PIMG_ID
+			  , C.PIMG_ORGNAME
+			  , C.PIMG_SVRNAME
+			  , C.PIMG_PATH
+			  , C.PTHUMBNAIL_PATH
+		  FROM PRODUCT A
+		  JOIN PRO_CATE B ON (A.PCATE_ID=B.PCATE_ID)
+		  JOIN PRO_IMG C ON (A.PRO_ID=C.REF_PRO_ID)
+		 WHERE A.PRO_STATUS='Y'
+		   AND C.PIMG_STATUS='Y'
+		   AND C.PIMG_TYPE='TITLE'
+		 ORDER BY A.PRO_ID DESC
+	</select>
+	
+	<!-- 상품관리 목록 조회 (전체상품) -->
+	<select id="selectAllThumbnailList" resultMap="thumbnailProductResultMap">
+		SELECT
+				A.PRO_ID
+			  , B.PCATE_NAME
+			  , A.PRO_TITLE
+			  , A.PRICE
+			  , A.PRO_DATE
+			  , C.PIMG_ID
+			  , C.PIMG_ORGNAME
+			  , C.PIMG_SVRNAME
+			  , C.PIMG_PATH
+			  , C.PTHUMBNAIL_PATH
+		  FROM PRODUCT A
+		  JOIN PRO_CATE B ON (A.PCATE_ID=B.PCATE_ID)
+		  JOIN PRO_IMG C ON (A.PRO_ID=C.REF_PRO_ID)
+		 WHERE C.PIMG_STATUS='Y'
+		   AND C.PIMG_TYPE='TITLE'
+		 ORDER BY A.PRO_ID DESC
+	</select>
+	
+	<!-- 상품 등록 -->
+	<insert id="insertThumbnailContent">
+		INSERT
+		  INTO PRODUCT
+		(
+		  PRO_ID
+		, PCATE_ID
+		, PRO_TITLE
+		, PRICE
+		, PRO_CONTENT
+		)
+		VALUES
+		(
+		SEQ_PRO_ID.NEXTVAL
+		, #{ proCateId }
+		, #{ proTitle } 
+		, #{ price }
+		, #{ proContent }
+		)
+		<selectKey keyProperty="proId" resultType="Integer" order="AFTER">
+				SELECT
+					  SEQ_PRO_ID.CURRVAL
+					FROM DUAL
+		</selectKey>
+	</insert>
+	
+	<!-- PRO_IMG 테이블에 삽입 -->
+	<insert id="insertProImg">
+		INSERT
+		  INTO PRO_IMG
+		(
+		  PIMG_ID
+		, REF_PRO_ID
+		, PIMG_ORGNAME
+		, PIMG_SVRNAME
+		, PIMG_PATH
+		, PIMG_TYPE
+		, PTHUMBNAIL_PATH
+		)
+		VALUES
+		(
+		  SEQ_PIMG_ID.NEXTVAL
+		, #{ refProId }
+		, #{ proImgOrgName }
+		, #{ proImgSvrName }
+		, #{ proImgPath }
+		, #{ proImgType }
+		, #{ proThumbnailPath }
+		)
+	</insert>
+	
+	<!-- 상품 상세조회 -->
+	<select id="selectOneThumbnailProduct" resultMap="thumbnailProductResultMap">
+		SELECT
+			  A.PRO_ID
+			, B.PCATE_NAME
+			, A.PRO_TITLE
+			, A.PRICE
+			, A.PRO_CONTENT
+			, C.PIMG_ID
+			, C.PIMG_ORGNAME
+			, C.PIMG_SVRNAME
+			, C.PIMG_PATH
+			, C.PIMG_TYPE
+			, C.PTHUMBNAIL_PATH
+		FROM PRODUCT A
+		JOIN PRO_CATE B ON (A.PCATE_ID=B.PCATE_ID)
+		JOIN PRO_IMG C ON (A.PRO_ID=C.REF_PRO_ID)
+	   WHERE A.PRO_STATUS='Y'
+	     AND A.PRO_ID=#{ id }
+	</select> 
+	
+	<select id="selectTotalCount" resultType="_int" parameterType="hashmap">
+       SELECT
+             COUNT(*)
+        FROM PRODUCT
+    </select>
+    
+    <update id="incrementProductCount">
+        UPDATE
+               PRODUCT A
+           SET A.PRO_COUNT = (SELECT B.PRO_COUNT
+                                  FROM PRODUCT B
+                                 WHERE B.PRO_ID = #{ id }
+                               ) + 1
+         WHERE A.PRO_ID = #{ id }
+	</update>
+	
+<!-- 	<update id="updateProduct"> -->
+<!-- 		UPDATE -->
+<!-- 				PRODUCT -->
+<!-- 			SET PRO_TITLE = #{ proTitle } -->
+<!-- 			  , PCATE_ID = #{ proCateId } -->
+<!-- 			  , PRICE = #{ price } -->
+<!-- 			  , PRO_CONTENT = #{ proContent } -->
+<!-- 		  WHERE PRO_ID = #{ id } -->
+<!-- 	</update> -->
+	
+	<update id="deleteProduct">
+		UPDATE
+		   		PRODUCT
+		    SET PRO_STATUS = 'N'
+		  WHERE PRO_ID = #{ proId }
+	</update>
+	
+</mapper>
+

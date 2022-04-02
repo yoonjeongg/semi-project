@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommunityDAO">
+  
+  <!-- 게시글 CommunityWriteDTO --> 
+  <resultMap type="com.mgstore.community.model.dto.CommunityWriteDTO" id="writeResultMap">
+  	<id property="postId" column="POST_ID"/>
+  	<result property="userId" column="USER_ID"/>
+  	<result property="categoryId" column="CATEGORY_ID"/>
+  	<result property="headerId" column="HEADER_ID"/>
+  	<result property="title" column="POST_TITLE"/>
+  	<result property="date" column="POST_DATE"/>
+  	<result property="views" column="POST_VIEWS"/>
+  	<result property="text" column="POST_TEXT"/>
+  	<result property="moddate" column="POST_MODDATE"/>
+  	<result property="status" column="POST_STATUS"/>
+  	
+  	<association property="user" resultMap="userResultMap"/>  <!-- 다른 DTO에서 참고해온다 -->
+  	<association property="category" resultMap="categoryResultMap"/>
+  	<association property="header" resultMap="headerResultMap"/>
+  	
+  	<collection property="postImgList" resultMap="postImgResultMap"/> <!-- 게시글 이미지 묶음 -->
+  </resultMap>
+  
+  <!-- 사용자  UserDTO-->
+  <resultMap type="com.mgstore.user.model.dto.UserDTO" id="userResultMap">
+		<id property="userId" column="USER_ID"/>
+		<result property="userPwd" column="USER_PWD"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="nickname" column="NICKNAME"/>
+		<result property="email" column="EMAIL"/>
+		<result property="phone" column="PHONE"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="agreement" column="AGREEMENT"/>
+		<result property="role" column="ROLE"/>
+		<result property="userStatus" column="USER_STATUS"/>
+		<result property="regDate" column="REG_DATE"/>
+		<result property="modDate" column="MOD_DATE"/>
+	</resultMap>
+	
+	<!-- 카테고리 CommunityCategoryDTO -->
+  	<resultMap type="com.mgstore.community.model.dto.CommunityCategoryDTO" id="categoryResultMap">
+		<id property="categoryId" column="CATEGORY_ID"/>
+		<result property="categoryName" column="CATEGORY_NAME"/>
+	</resultMap>
+  
+  	<!-- 말머리 CommunityHeaderDTO -->
+  	<resultMap type="com.mgstore.community.model.dto.CommunityHeaderDTO" id="headerResultMap">
+		<id property="headerId" column="HEADER_ID"/>
+		<result property="headerName" column="HEADER_NAME"/>
+	</resultMap>
+	
+	<!-- 게시글 사진 CommunityPostImageDTO-->
+  <resultMap type="com.mgstore.community.model.dto.CommunityPostImageDTO" id="postImgResultMap"> 
+		<id property="imageId" column="PO_IMAGE_ID"/>
+		<result property="postId" column="POST_ID"/>
+		<result property="savePath" column="PO_IMAGE_PATH"/>
+		<result property="originalName" column="PO_IMAGE_NAME"/>
+		<result property="savedName" column="PO_IMAGE_RENAME"/>
+		<result property="fileType" column="PO_FILE_TYPE"/>
+		<result property="thumbnailPath" column="PO_THUMBNAIL_PATH"/>
+		<result property="status" column="PO_STATUS"/>
+	</resultMap>
+  
+  <!--  -->
+  
+	<!-- 상품 -->
+	<resultMap type="com.mgstore.product.model.dto.ProductDTO" id="productResultMap">
+		<id property="proId" column="PRO_ID"/>
+		<result property="proCateId" column="PCATE_ID"/>
+		<result property="proTitle" column="PRO_TITLE"/>
+		<result property="price" column="PRICE"/>
+		<result property="proAmount" column="PRO_AMOUNT"/>
+		<result property="proContent" column="PRO_CONTENT"/>
+		<result property="proDate" column="PRO_DATE"/>
+		<result property="proStatus" column="PRO_STATUS"/>
+		<result property="proCount" column="PRO_COUNT"/>
+	</resultMap>
+	
+
+	
+	<!-- 썸네일 -->
+	<resultMap type="com.mgstore.product.model.dto.ProductDTO" id="thumbnailProductResultMap">
+		<id property="proId" column="PRO_ID"/>
+		<result property="proCateId" column="PCATE_ID"/>
+		<result property="proTitle" column="PRO_TITLE"/>
+		<result property="price" column="PRICE"/>
+		<result property="proAmount" column="PRO_AMOUNT"/>
+		<result property="proContent" column="PRO_CONTENT"/>
+		<result property="proDate" column="PRO_DATE"/>
+		<result property="proStatus" column="PRO_STATUS"/>
+		<result property="proCount" column="PRO_COUNT"/>
+	</resultMap>
+	
+	<!-- 상품이미지 -->
+	<resultMap type="com.mgstore.product.model.dto.ProImgDTO" id="proImgResultMap">
+		<id property="proImgId" column="PIMG_ID"/>
+		<result property="refProId" column="REF_PRO_ID"/>
+		<result property="proImgOrgName" column="PIMG_ORGNAME"/>
+		<result property="proImgSvrName" column="PIMG_SVRNAME"/>
+		<result property="proImgPath" column="PIMG_PATH"/>
+		<result property="proImgType" column="PIMG_TYPE"/>
+		<result property="proThumbnailPath" column="PTHUMBNAIL_PATH"/>
+		<result property="proImgStatus" column="PIMG_STATUS"/>
+	</resultMap>
+  
+  <!-- 사진없는 게시글 추가 -->
+  <insert id="insertWrite">
+  	INSERT
+  	  INTO POST
+  	(
+  	 POST_ID
+   , USER_ID     <!-- 게시글 작성한 USER_ID -->	 
+   , CATEGORY_ID
+   , POST_TITLE
+   , POST_TEXT	 
+  	)
+  	VALUES
+  	(
+  	 SEQ_POST_ID.NEXTVAL
+   , #{ userId }
+   , #{ categoryId }	
+   , #{ title }
+   , #{ text }
+  	)
+  </insert>
+  
+  
+  
+   
+  <select id="selectTotalCount" resultType="_int" parameterType="hashmap">
+  
+  SELECT 
+  		COUNT(*)
+  	FROM POST A	
+  
+  <!-- 검색키워드 없으므로 주석 -->
+  <!-- 검색 키워드가 있는 경우 다른 테이블과 join해야 하는 경우에 사용한다.
+          현재 테이블에 있다면 join 사용하지 않는다. -->
+    <!--  	<if test="searchCondition == 'category'">
+	      JOIN TBL_CATEGORY B ON(A.CATEGORY_CODE = B.CATEGORY_CODE)
+    	</if>
+    	<if test="searchCondition == 'writer'">
+	      JOIN TBL_MEMBER B ON(A.BOARD_WRITER_MEMBER_NO = B.MEMBER_NO)
+    	</if>
+    	<where>
+			<if test="searchCondition == 'category'">
+	           B.CATEGORY_NAME = #{ searchValue }
+			</if>
+			<if test="searchCondition == 'writer'">
+	           B.NICKNAME LIKE '%' || #{ searchValue } || '%'	
+			</if>
+			<if test="searchCondition == 'title'">
+	           A.BOARD_TITLE LIKE '%' || #{ searchValue } || '%' 	
+			</if>
+			<if test="searchCondition == 'content'">
+	           A.BOARD_BODY LIKE '%' || #{ searchValue } || '%' 	
+			</if> -->
+	       WHERE A.POST_STATUS = 'Y' 
+    	<!--  </where>-->
+  </select>
+  
+  <select id="selectWriteList" resultMap="writeResultMap">
+  SELECT A.RNUM
+  	   , A.POST_ID
+  	   , A.CATEGORY_ID   
+  	   , A.HEADER_ID		
+  	   , A.POST_TITLE
+       , A.POST_DATE  
+	   , A.POST_VIEWS
+  	   , A.POST_TEXT
+  	   , A.POST_MODDATE
+  	   , A.POST_STATUS	    
+  	FROM (SELECT ROWNUM RNUM
+  	 		   , B.POST_ID
+  	 		   , B.CATEGORY_ID
+  	 		   , B.HEADER_ID
+  	 		   , B.POST_TITLE
+  	 		   , B.POST_DATE
+  	 		   , B.POST_VIEWS
+  	 		   , B.POST_TEXT
+  	 		   , B.POST_MODDATE
+  	 		   , B.POST_STATUS
+  	 	    FROM (SELECT C.POST_ID
+  	 		           , C.CATEGORY_ID
+  	 		           , C.HEADER_ID
+  	 		           , C.POST_TITLE
+  	 		           , C.POST_DATE
+  	 		           , C.POST_VIEWS
+  	 		           , C.POST_TEXT
+  	 		           , C.POST_MODDATE
+  	 		           , C.POST_STATUS
+  	 		           FROM POST C 
+  	 		         <!--    <if test="searchCondition == 'category'">
+	      				  JOIN TBL_CATEGORY D ON(C.CATEGORY_CODE = D.CATEGORY_CODE)
+    					</if>
+    					<if test="searchCondition == 'writer'">
+	      				  JOIN TBL_MEMBER D ON(C.BOARD_WRITER_MEMBER_NO = D.MEMBER_NO)
+    					</if>
+    					<where>
+							<if test="searchCondition == 'category'">
+	           				   D.CATEGORY_NAME = #{ searchValue }
+							</if>
+							<if test="searchCondition == 'writer'">
+	           				   D.NICKNAME LIKE '%' || #{ searchValue } || '%'	
+							</if>
+							<if test="searchCondition == 'title'">
+	           				   C.BOARD_TITLE LIKE '%' || #{ searchValue } || '%' 	
+							</if>
+							<if test="searchCondition == 'content'">
+	           				   C.BOARD_BODY LIKE '%' || #{ searchValue } || '%' 	
+							</if> -->
+	       			  WHERE C.POST_STATUS = 'Y'
+    				<!--  	</where> -->
+                      ORDER BY C.POST_ID DESC
+  	 		           ) B
+  	 		           <![CDATA[
+                  WHERE ROWNUM <= #{ endRow }
+                  ]]> 
+  	 		     ) A 
+  	 	 <!--   JOIN TBL_CATEGORY D ON (A.CATEGORY_CODE = D.CATEGORY_CODE)
+          JOIN TBL_MEMBER E ON(A.BOARD_WRITER_MEMBER_NO = E.MEMBER_NO) --> 
+  		 WHERE A.RNUM >= #{ startRow }  
+  		 AND A.CATEGORY_ID = 50    
+         ORDER BY A.RNUM 
+  </select>
+	
+	
+	<!-- 사진있는 게시물 삽입 -->
+  	<insert id="insertThumbnailContent">
+		INSERT
+		   INTO POST
+		(
+		  POST_ID
+		, USER_ID
+		, CATEGORY_ID
+		, HEADER_ID
+		, POST_TITLE
+		, POST_TEXT 
+		)
+		VALUES
+		(
+		  SEQ_POST_ID.NEXTVAL
+		, #{ userId }
+		, #{ categoryId } 
+		, #{ headerId } 
+		, #{ title }
+		, #{ text }   
+		 )
+		<!-- 게시물 번호 얻어오는거 refno -->
+        <selectKey keyProperty="postId" resultType="Integer" order="AFTER">
+        	SELECT
+        	       SEQ_POST_ID.CURRVAL
+        	  FROM DUAL
+        </selectKey>
+	</insert>
+	
+	<!-- postImg dto 넣기 -->
+	<insert id="insertPostResult">
+		INSERT
+			INTO POST_IMAGE
+		(
+		  PO_IMAGE_ID
+		, POST_ID
+		, PO_IMAGE_PATH
+		, PO_IMAGE_NAME
+		, PO_IMAGE_RENAME
+		, PO_FILE_TYPE
+		, PO_THUMBNAIL_PATH 	
+		)
+		VALUES
+		(
+		  SEQ_PO_IMAGE_ID.NEXTVAL
+		, #{ postId }
+		, #{ originalName }
+        , #{ savedName }
+        , #{ savePath }
+        , #{ fileType }
+        , #{ thumbnailPath }
+		)
+	</insert>
+	
+	<!-- 썸네일 게시판 조회용 게시판 -->
+	<select id="selectThumbnailList" resultMap="writeResultMap">
+		SELECT
+		       A.POST_ID
+		     , A.POST_TITLE
+		     , A.POST_DATE
+		     , C.NICKNAME <!-- 회원 닉네임 -->
+		     , D.PO_IMAGE_ID  <!-- 사진 아이디 -->
+             , D.PO_IMAGE_NAME  <!-- 원본파일명 -->
+             , D.PO_IMAGE_RENAME <!-- 수정파일명 -->
+             , D.PO_IMAGE_PATH  <!-- 파일 경로 -->
+             , D.PO_THUMBNAIL_PATH <!-- 썸네일 경로 -->
+          FROM POST A
+          JOIN TBL_USER C ON (A.USER_ID = C.USER_ID)
+          JOIN POST_IMAGE D ON (A.POST_ID = D.POST_ID) 
+         WHERE A.POST_STATUS = 'Y'
+           AND D.PO_STATUS = 'Y'
+           AND D.PO_FILE_TYPE = 'TITLE'
+      ORDER BY A.POST_ID DESC      
+	</select>
+	
+	<!-- 조회수 업뎃 -->
+	<update id="incrementBoardCount">
+		UPDATE
+			  POST A
+	       SET A.POST_VIEWS = (SELECT B.POST_VIEWS
+	       						 FROM POST B
+	       						WHERE B.POST_ID = #{ postId }
+	       					 ) + 1
+	     WHERE A.POST_ID = #{ postId }		  
+	</update>
+	
+	<!-- 상세 글 페이지 -->
+	<select id="selectOneThumbnailBoard" resultMap="writeResultMap">
+		SELECT
+			  A.POST_ID
+			, A.POST_TITLE
+			, A.POST_TEXT
+			, A.CATEGORY_ID
+			, A.HEADER_ID
+		    , B.HEADER_NAME 	
+		  	, A.USER_ID
+		  	, C.NICKNAME
+		  	, A.POST_VIEWS
+		  	, A.POST_DATE
+		  	, A.POST_MODDATE
+		  	, D.PO_IMAGE_ID
+		  	, D.PO_IMAGE_NAME
+		  	, D.PO_IMAGE_RENAME
+		  	, D.PO_IMAGE_PATH
+		  	, D.PO_FILE_TYPE
+		  	, D.PO_THUMBNAIL_PATH
+		  FROM POST A
+		  JOIN HEADER B ON (A.HEADER_ID = B.HEADER_ID) 
+		  JOIN TBL_USER C ON (A.USER_ID = C.USER_ID)
+		  JOIN POST_IMAGE D ON (A.POST_ID = D.POST_ID)
+		 WHERE A.POST_STATUS = 'Y'
+		   AND D.PO_STATUS = 'Y'
+		   AND A.POST_ID = #{ postId }
+	</select>
+	
+	<!-- 사진 없는 게시판 상세조회 -->
+	<select id="selectOneWrite" resultMap="writeResultMap">
+	SELECT
+			  A.POST_ID
+			, A.POST_TITLE
+			, A.POST_TEXT
+			, A.CATEGORY_ID	
+		  	, A.USER_ID
+		  	, C.NICKNAME
+		  	, A.POST_VIEWS
+		  	, A.POST_DATE
+		  	, A.POST_MODDATE
+		  FROM POST A
+		  JOIN TBL_USER C ON (A.USER_ID = C.USER_ID)
+		 WHERE A.POST_STATUS = 'Y'
+		   AND A.POST_ID = #{ postId }
+	</select>
+	
+	<!-- 사진 없는 게시판 조회수 업뎃 -->
+	<update id="incrementWriteCount">
+		UPDATE
+			  POST A
+	       SET A.POST_VIEWS = (SELECT B.POST_VIEWS
+	       						 FROM POST B
+	       						WHERE B.POST_ID = #{ postId }
+	       					 ) + 1
+	     WHERE A.POST_ID = #{ postId }		  
+	</update>
+	
+	<!-- 사진 없는 게시글 수정 -->
+	<update id="updateWrite">
+		UPDATE 
+		       POST
+		   SET POST_TITLE = #{ title }
+		     , POST_TEXT = #{ text }
+		 WHERE POST_ID = #{ postId }
+	</update>
+	
+	<!-- 사진 없는 게시판 삭제 -->
+	<update id="deleteFree">
+		UPDATE 
+		       POST
+		   SET POST_STATUS = 'N'
+		 WHERE POST_ID = #{ postId }
+	</update>
+		
+		<!-- 여기서 했던 실수 ORDER BY와 SELECT 절에 필드를 같이 쓸 수 없는데 써버렸다.. 해결했음 -->
+		<!-- 커뮤니티 메인 BEST -->
+	<select id="selectBestList" resultMap="writeResultMap">
+		SELECT
+		       A.POST_ID
+		     , A.POST_TITLE
+		     , A.POST_DATE
+		     , C.NICKNAME <!-- 회원 닉네임 -->
+		     , E.HEADER_NAME
+		     , D.PO_IMAGE_ID  <!-- 사진 아이디 -->
+             , D.PO_IMAGE_NAME  <!-- 원본파일명 -->
+             , D.PO_IMAGE_RENAME <!-- 수정파일명 -->
+             , D.PO_IMAGE_PATH  <!-- 파일 경로 -->
+             , D.PO_THUMBNAIL_PATH <!-- 썸네일 경로 -->
+          FROM POST A
+          JOIN CATEGORY B ON (A.CATEGORY_ID = B.CATEGORY_ID)
+          JOIN TBL_USER C ON (A.USER_ID = C.USER_ID)
+          JOIN POST_IMAGE D ON (A.POST_ID = D.POST_ID) 
+          JOIN HEADER E ON (A.HEADER_ID = E.HEADER_ID)
+         WHERE A.POST_STATUS = 'Y'
+           AND B.CATEGORY_ID = 20
+           AND D.PO_STATUS = 'Y'
+           AND D.PO_FILE_TYPE = 'TITLE'
+ 		   ORDER BY A.POST_VIEWS DESC
+	</select>
+	
+	
+	<!-- 멍개일상 게시판 삭제(게시글) -->
+	<update id="deleteThumbnail">
+		UPDATE 
+		       POST
+		   SET POST_STATUS = 'N'
+		 WHERE POST_ID = #{ postId }
+	</update>
+	
+	
+	<!-- 멍개일상 게시판 삭제(사진) -->
+	<update id="deleteThumbnails">
+		UPDATE 
+		       POST_IMAGE
+		   SET PO_STATUS = 'N'
+		 WHERE POST_ID = #{ postId }
+	</update>
+	
+	
+		
+		<!-- 커뮤니티 메인 최신 순 조회 -->
+	<select id="selectNewList" resultMap="writeResultMap">
+		SELECT
+		       A.POST_ID
+		     , A.POST_TITLE
+		     , B.CATEGORY_NAME
+		     , D.PO_IMAGE_ID  <!-- 사진 아이디 -->
+             , D.PO_IMAGE_NAME  <!-- 원본파일명 -->
+             , D.PO_IMAGE_RENAME <!-- 수정파일명 -->
+             , D.PO_IMAGE_PATH  <!-- 파일 경로 -->
+             , D.PO_THUMBNAIL_PATH <!-- 썸네일 경로 -->
+          FROM POST A
+          JOIN CATEGORY B ON (A.CATEGORY_ID = B.CATEGORY_ID)
+          JOIN POST_IMAGE D ON (A.POST_ID = D.POST_ID) 
+         WHERE A.POST_STATUS = 'Y'
+           AND D.PO_FILE_TYPE = 'TITLE'	 
+ 		   ORDER BY A.POST_DATE DESC
+	</select>
+	
+	
+		<!-- 상품 사진 조회수 최대 조회 -->
+  <select id="selectProductList" resultMap="productResultMap">
+		SELECT
+				A.PRO_ID
+			  , A.PRO_TITLE
+			  , C.PIMG_ID
+			  , C.PIMG_ORGNAME
+			  , C.PIMG_SVRNAME
+			  , C.PIMG_PATH
+			  , C.PTHUMBNAIL_PATH
+		  FROM PRODUCT A
+		  JOIN PRO_IMG C ON (A.PRO_ID=C.REF_PRO_ID)
+		 WHERE A.PRO_STATUS='Y'
+		   AND C.PIMG_STATUS='Y'
+		   AND C.PIMG_TYPE='TITLE'
+		 ORDER BY A.PRO_COUNT DESC
+	</select> 
+	
+	
+	
+</mapper>
